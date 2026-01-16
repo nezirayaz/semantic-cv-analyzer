@@ -8,12 +8,13 @@ matching, it uses Generative AI to understand context, seniority, and soft skill
 
 Key Capabilities:
     - Semantic Text Extraction (PDF)
-    - Context-Aware RAG (Retrieval-Augmented Generation) Analysis
+    - Context-Aware RAG Analysis
     - Multi-dimensional Scoring (Technical, Experience, Soft Skills)
     - JSON-Structured Output Parsing
+    - Auto-Language Detection (Responses match the Job Description language)
 
 Author: Nezir Ayaz
-Version: 1.0.0
+Version: 1.1.0
 License: MIT
 """
 
@@ -50,7 +51,6 @@ class AppConfig:
     PAGE_TITLE = "Semantic CV Analyzer"
     PAGE_ICON = "🔎"
     LAYOUT = "wide"
-    # Using the latest efficient model
     MODEL_NAME = "gemini-2.5-flash" 
     
     # UI Layout Config
@@ -142,6 +142,7 @@ class AIAnalyzer:
     def analyze(self, job_desc: str, cv_text: str) -> Optional[AnalysisResult]:
         if not self.model: return None
         
+        # --- SMART PROMPT WITH LANGUAGE DETECTION ---
         prompt = f"""
         ROLE: Senior Technical Recruiter & AI Engineer.
         TASK: Analyze the Candidate CV against the Job Description.
@@ -152,6 +153,11 @@ class AIAnalyzer:
         CANDIDATE CV:
         {cv_text}
         
+        LANGUAGE INSTRUCTION:
+        1. Detect the language of the JOB DESCRIPTION provided above.
+        2. You MUST write the 'candidate_summary' and 'interview_question' fields in that SAME language.
+        (e.g., If Job Description is Turkish, summary and question must be Turkish. If English, use English).
+        
         OUTPUT FORMAT (JSON ONLY):
         {{
             "technical_score": <0-100>,
@@ -159,8 +165,8 @@ class AIAnalyzer:
             "soft_skill_score": <0-100>,
             "overall_average": <0-100>,
             "missing_keywords": ["list", "of", "missing", "tech", "keywords"],
-            "candidate_summary": "Technical summary of the candidate.",
-            "interview_question": "One hard technical interview question."
+            "candidate_summary": "Summary in the Job Description's language",
+            "interview_question": "Question in the Job Description's language"
         }}
         """
         
@@ -184,7 +190,7 @@ class UIRenderer:
     @staticmethod
     def render_header():
         st.title("🔎 Semantic CV Analyzer")
-        st.markdown("")
+        st.markdown("**Powered by Google Gemini 2.5 & Python**")
         st.markdown("---")
     
     @staticmethod
@@ -192,7 +198,7 @@ class UIRenderer:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("📋 Job Description")
-            jd = st.text_area("Paste JD here:", height=300)
+            jd = st.text_area("Paste JD here:", height=300, help="Paste the job description. The AI will detect the language automatically.")
         with col2:
             st.subheader("📄 Candidate CV")
             cv = st.file_uploader("Upload PDF", type=["pdf"])
