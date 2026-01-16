@@ -190,7 +190,7 @@ class UIRenderer:
     @staticmethod
     def render_header():
         st.title("🔎 Semantic CV Analyzer")
-        st.markdown("**Powered by Google Gemini 2.5 & Python**")
+        st.markdown("")
         st.markdown("---")
     
     @staticmethod
